@@ -23,6 +23,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.xml.bind.DatatypeConverter;
 
 import org.apache.cxf.interceptor.Fault;
+import org.apache.http.impl.auth.SSLEngineFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,6 +74,7 @@ public class PowerHell {
 	private String userName;
 	private String password;
 	private HostnameVerifier hostnameVerifier;
+	private SSLEngineFactory sslEngineFactory;
 	private boolean disableCertificateChecks;
 	private String initScriptlet;
 	private String prompt = PROMPT;
@@ -130,6 +132,14 @@ public class PowerHell {
 		this.hostnameVerifier = hostnameVerifier;
 	}
 
+	public SSLEngineFactory getSslEngineFactory() {
+		return sslEngineFactory;
+	}
+
+	public void setSslEngineFactory(SSLEngineFactory sslEngineFactory) {
+		this.sslEngineFactory = sslEngineFactory;
+	}
+
 	public boolean isDisableCertificateChecks() {
 		return disableCertificateChecks;
 	}
@@ -159,6 +169,7 @@ public class PowerHell {
 		builder.credentials(domainName, userName, password);
 		builder.disableCertificateChecks(disableCertificateChecks);
 		builder.hostnameVerifier(hostnameVerifier);
+		builder.sslEngineFactory(sslEngineFactory);
 		
 		LOG.debug("Connecting WinRM for PowerHell. Endpoint: {0}", endpointUrl);
 		client = builder.build();
