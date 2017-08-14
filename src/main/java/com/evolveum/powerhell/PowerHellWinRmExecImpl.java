@@ -16,6 +16,7 @@
 package com.evolveum.powerhell;
 
 import java.io.StringWriter;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +38,7 @@ public class PowerHellWinRmExecImpl extends AbstractPowerHellWinRmImpl {
 	}
 	
 	@Override
-	public String runCommand(String outCommandLine) throws PowerHellExecutionException, PowerHellSecurityException, PowerHellCommunicationException {
+	public String runCommand(String command, Map<String,Object> arguments) throws PowerHellExecutionException, PowerHellSecurityException, PowerHellCommunicationException {
 		
 		// winrm4j seems not to be fully ready for client reuse
 		if (!isClientConnected()) {
@@ -49,7 +50,7 @@ public class PowerHellWinRmExecImpl extends AbstractPowerHellWinRmImpl {
 		StringWriter writerStdOut = new StringWriter();
 		StringWriter writerStdErr = new StringWriter();
 		
-		String encodedCommandLine = encodeCommand(outCommandLine);
+		String encodedCommandLine = encodeCommand(command, arguments);
 		logData("X>", encodedCommandLine);
 		
 		int exitCode = getClient().command(encodedCommandLine, writerStdOut, writerStdErr);
@@ -68,7 +69,7 @@ public class PowerHellWinRmExecImpl extends AbstractPowerHellWinRmImpl {
 			throw e;
 		}
 		
-		logExecution(outCommandLine, tsCommStart);
+		logExecution(command, tsCommStart);
 		
 		// winrm4j seems not to be fully ready for client reuse
 		disconnectClient();
@@ -76,9 +77,8 @@ public class PowerHellWinRmExecImpl extends AbstractPowerHellWinRmImpl {
 		return out;
 	}
 
-	protected String encodeCommand(String outCommandLine) {
-		// No command encoding is needed for plain WinRM execution
-		return outCommandLine;
+	protected String encodeCommand(String command, Map<String,Object> arguments) {
+		return encodeCommandExecToString(command, arguments);
 	}
 	
 }

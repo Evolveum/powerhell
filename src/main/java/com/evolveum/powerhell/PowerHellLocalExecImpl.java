@@ -18,6 +18,10 @@ package com.evolveum.powerhell;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -53,12 +57,12 @@ public class PowerHellLocalExecImpl extends AbstractPowerHellImpl {
 
 	
 	@Override
-	public String runCommand(String outCommandLine) throws PowerHellExecutionException, PowerHellSecurityException, PowerHellCommunicationException {
+	public String runCommand(String command, Map<String,Object> arguments) throws PowerHellExecutionException, PowerHellSecurityException, PowerHellCommunicationException {
 		
 		long tsCommStart = System.currentTimeMillis();
 		
-		String encodedCommandLine = encodeCommand(outCommandLine);
-		logData("X>", encodedCommandLine);
+		List<String> encodedCommandLine = encodeCommandExecToList(command, arguments);
+		logData("X>", encodedCommandLine.stream().collect(Collectors.joining(" ")));
 		
 		ProcessBuilder processBuilder = new ProcessBuilder(encodedCommandLine);
 		Process process;
@@ -81,8 +85,8 @@ public class PowerHellLocalExecImpl extends AbstractPowerHellImpl {
 			throw pe;
 		}
 				
-		String out = readerStdOut.lines().collect(Collectors.joining());
-		String err = readerStdErr.lines().collect(Collectors.joining());
+		String out = getStringFromBuffer(readerStdOut);
+		String err = getStringFromBuffer(readerStdErr);
 		logData("O<", out);
 		logData("E<", err);
     		
@@ -94,14 +98,13 @@ public class PowerHellLocalExecImpl extends AbstractPowerHellImpl {
 			throw e;
 		}
 		
-		logExecution(outCommandLine, tsCommStart);
+		logExecution(command, tsCommStart);
 		
 		return out;
 	}
 
-	protected String encodeCommand(String outCommandLine) {
-		// No command encoding is needed for plain WinRM execution
-		return outCommandLine;
+	private String getStringFromBuffer(BufferedReader bufferReader) {
+		return bufferReader.lines().collect(Collectors.joining("\n"));
 	}
 
 }

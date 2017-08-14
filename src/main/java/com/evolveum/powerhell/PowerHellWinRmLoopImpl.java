@@ -16,6 +16,7 @@
 package com.evolveum.powerhell;
 
 import java.io.StringWriter;
+import java.util.Map;
 
 import org.apache.cxf.interceptor.Fault;
 import org.slf4j.Logger;
@@ -104,7 +105,7 @@ public class PowerHellWinRmLoopImpl extends AbstractPowerHellWinRmImpl {
 		
 		try {
 			
-			command = getClient().commandAsync(encodePowerShell(psScript));
+			command = getClient().commandAsync(encodePowerShell(psScript, null));
 			
 		} catch (Fault e) {
 			processFault("Executing command failed", e);
@@ -140,7 +141,7 @@ public class PowerHellWinRmLoopImpl extends AbstractPowerHellWinRmImpl {
 	}
 
 	@Override
-	public String runCommand(String outCommandLine) throws PowerHellExecutionException, PowerHellSecurityException, PowerHellCommunicationException {
+	public String runCommand(String psScript, Map<String, Object> arguments) throws PowerHellExecutionException, PowerHellSecurityException, PowerHellCommunicationException {
 		
 		long tsCommStart = System.currentTimeMillis();
 		
@@ -152,6 +153,7 @@ public class PowerHellWinRmLoopImpl extends AbstractPowerHellWinRmImpl {
 		StringWriter writerStdErr = new StringWriter();
 		String promptMessage = null;
 		
+		String outCommandLine = encodePowerShellVariablesAndCommandToString(psScript, arguments);
 		String tx = outCommandLine + "\r\n" + prompt + "\r\n";
 		logData("I>", tx);
 		

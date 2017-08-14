@@ -15,30 +15,24 @@
  */
 package com.evolveum.powerhell;
 
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
- * <p>
- * PowerHell implementation that executes the commands by using plain WinRM, wrapping them to powershell.exe.
- * </p> 
- * 
  * @author semancik
+ *
  */
-public class PowerHellWinRmExecPowerShellImpl extends PowerHellWinRmExecImpl {
+public enum ArgumentStyle {
+
+	PARAMETERS_DASH("-"),  // command -arg1 val1 -arg2 val2
+	PARAMETERS_SLASH("/"), // command /arg1 val1 /arg2 val2
+	VARIABLES("$");        // $arg1=val1; $arg2=val2; command
 	
-	private static final Logger LOG = LoggerFactory.getLogger(PowerHellWinRmExecPowerShellImpl.class);
-	
-	@Override
-	protected String getImplementationName() {
-		return "WinRM PowerShell Execution";
+	private final String prefix;
+
+	private ArgumentStyle(String prefix) {
+		this.prefix = prefix;
 	}
-	
-	@Override
-	protected String encodeCommand(String command, Map<String,Object> arguments) {
-		return encodePowerShell(command, arguments);
+
+	public String getPrefix() {
+		return prefix;
 	}
 	
 }

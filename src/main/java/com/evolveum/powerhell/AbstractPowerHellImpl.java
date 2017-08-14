@@ -18,6 +18,10 @@ package com.evolveum.powerhell;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.xml.bind.DatatypeConverter;
@@ -39,7 +43,17 @@ import io.cloudsoft.winrm4j.client.WinRmClient;
 public abstract class AbstractPowerHellImpl implements PowerHell {
 	
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractPowerHellImpl.class);
+	
+	private ArgumentStyle argumentStyle;
 		
+	public ArgumentStyle getArgumentStyle() {
+		return argumentStyle;
+	}
+
+	public void setArgumentStyle(ArgumentStyle argumentStyle) {
+		this.argumentStyle = argumentStyle;
+	}
+
 	protected abstract String getImplementationName();
 
 	protected void processFault(String message, Fault e) throws PowerHellSecurityException, PowerHellCommunicationException {
@@ -58,14 +72,71 @@ public abstract class AbstractPowerHellImpl implements PowerHell {
         return DatatypeConverter.printBase64Binary(bytes);
 	}
 	
-	protected String encodePowerShell(String psScript) {
+	protected String encodePowerShell(String command, Map<String,Object> arguments) {
+		String psScript;
+		if (arguments == null) {
+			psScript = command;
+		} else if (getArgumentStyle() == ArgumentStyle.VARIABLES) {
+			psScript = encodePowerShellVariablesAndCommandToString(command, arguments);
+		} else {
+			psScript = encodeCommandExecToString(command, arguments);
+		}
 		return "powershell -EncodedCommand "+encodeUtf16Base64(psScript);
 	}
+	
+	protected String encodePowerShellVariablesAndCommandToString(String command, Map<String, Object> arguments) {
+		StringBuilder commandLineBuilder = new StringBuilder();
+		String paramPrefix = getParamPrefix();
+		for (Entry<String, Object> argEntry: arguments.entrySet()) {
+			commandLineBuilder.append(paramPrefix).append(argEntry.getKey());
+			commandLineBuilder.append(" = ");
+			commandLineBuilder.append(argEntry.getValue().toString());
+			commandLineBuilder.append("; ");
+		}
+		commandLineBuilder.append(command);
+		return commandLineBuilder.toString();
+	}
+	
+	protected List<String> encodeCommandExecToList(String command, Map<String,Object> arguments) {
+		List<String> commandLine = new ArrayList<>();
+		commandLine.add(command);
+		String paramPrefix = getParamPrefix();
+		for (Entry<String, Object> argEntry: arguments.entrySet()) {
+			commandLine.add(paramPrefix + argEntry.getKey());
+			if (argEntry.getValue() != null) {
+				commandLine.add(argEntry.getValue().toString());
+			}
+		}
+		return commandLine;
+	}
+	
+	protected String encodeCommandExecToString(String command, Map<String,Object> arguments) {
+		StringBuilder commandLineBuilder = new StringBuilder();
+		commandLineBuilder.append(command);
+		String paramPrefix = getParamPrefix();
+		for (Entry<String, Object> argEntry: arguments.entrySet()) {
+			commandLineBuilder.append(" ");
+			commandLineBuilder.append(paramPrefix).append(argEntry.getKey());
+			if (argEntry.getValue() != null) {
+				commandLineBuilder.append(" ");
+				commandLineBuilder.append(argEntry.getValue().toString());
+			}
+		}
+		return commandLineBuilder.toString();
+	}
+
+	protected String getParamPrefix() {
+		if (getArgumentStyle() == null) {
+			return ArgumentStyle.PARAMETERS_DASH.getPrefix();
+		}
+		return getArgumentStyle().getPrefix();
+	}
+
 	
 	protected void logData(String prefix, String data) {
 		if (LOG.isTraceEnabled()) {
 			if (data != null && !data.isEmpty()) {
-				LOG.trace("{0} {1}", prefix, data);
+				LOG.trace("{} {}", prefix, data);
 			}
 		}
 	}

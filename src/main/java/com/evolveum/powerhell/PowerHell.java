@@ -15,6 +15,8 @@
  */
 package com.evolveum.powerhell;
 
+import java.util.Map;
+
 public interface PowerHell {
 	
 	/**
@@ -23,7 +25,7 @@ public interface PowerHell {
 	 */
 	void connect() throws PowerHellExecutionException, PowerHellSecurityException, PowerHellCommunicationException;
 	
-	String runCommand(String outCommandLine) throws PowerHellExecutionException, PowerHellSecurityException, PowerHellCommunicationException;
+	String runCommand(String command, Map<String,Object> arguments) throws PowerHellExecutionException, PowerHellSecurityException, PowerHellCommunicationException;
 
 	/**
 	 * Disposes PowerHell.
