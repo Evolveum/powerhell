@@ -37,6 +37,8 @@ import org.slf4j.LoggerFactory;
 public class PowerHellLocalExecImpl extends AbstractPowerHellImpl {
 	
 	private static final Logger LOG = LoggerFactory.getLogger(PowerHellLocalExecImpl.class);
+	private static final long WAIT_SLEEP_INTERVAL = 50;
+	private boolean traceReadProgress = true;
 	
 	@Override
 	protected String getImplementationName() {
@@ -64,6 +66,9 @@ public class PowerHellLocalExecImpl extends AbstractPowerHellImpl {
 		List<String> encodedCommandLine = encodeCommand(command, arguments);
 		logData("X>", encodedCommandLine.stream().collect(Collectors.joining(" ")));
 		
+		StringBuffer bufferStdOut = new StringBuffer();
+		StringBuffer bufferStdErr = new StringBuffer();
+		
 		ProcessBuilder processBuilder = new ProcessBuilder(encodedCommandLine);
 		Process process;
 		try {
@@ -73,20 +78,68 @@ public class PowerHellLocalExecImpl extends AbstractPowerHellImpl {
 			PowerHellExecutionException pe = new PowerHellExecutionException("Error executing command: " + e.getMessage(), e, (Integer)null);
 			throw pe;
 		}
-		BufferedReader readerStdOut = new BufferedReader(new InputStreamReader(process.getInputStream()));
-		BufferedReader readerStdErr = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+		InputStreamReader readerStdOut = new InputStreamReader(process.getInputStream());
+		InputStreamReader readerStdErr = new InputStreamReader(process.getErrorStream());
+		
+		char[] buffer = new char[2048];
+		
+		Integer exitCode = null;
+		boolean done = false;
+		boolean stdOutOpen = true;
+		boolean stdErrOpen = true;
+		
+		while (!done) {
+
+			// STDOUT
+			try {
+				if (stdOutOpen && readerStdOut.ready()) {
+					int readCount = readerStdOut.read(buffer, 0, buffer.length);
+					traceReadProgress("STDOUT", buffer, readCount);
+					if (readCount < 0){
+	                    stdOutOpen = false;
+	                } else if (readCount > 0) {
+	                	bufferStdOut.append(buffer, 0, readCount);
+	                }
+				}
+			} catch (IOException e) {
+				LOG.error("Error reading from stdout of process {}: {}", encodedCommandLine.get(0), e.getMessage(), e);
+				stdOutOpen = false;
+			}
 			
-		int exitCode;
-		try {
-			exitCode = process.waitFor();
-		} catch (InterruptedException e) {
-			LOG.error("Error waiting for command to finish: {}", e.getMessage());
-			PowerHellExecutionException pe = new PowerHellExecutionException("Error waiting for command to finish: " + e.getMessage(), e, (Integer)null);
-			throw pe;
+			// STDERR
+			try {
+				if (stdErrOpen && readerStdErr.ready()) {
+					int readCount = readerStdErr.read(buffer, 0, buffer.length);
+					traceReadProgress("STDERR", buffer, readCount);
+					if (readCount < 0) {
+	                    stdErrOpen = false;
+	                } else if (readCount > 0) {
+	                	bufferStdErr.append(buffer, 0, readCount);
+	                }
+				}
+			} catch (IOException e) {
+				LOG.error("Error reading from stderr of process {}: {}", encodedCommandLine.get(0), e.getMessage(), e);
+				stdErrOpen = false;
+			}	
+			
+			// exit status
+			try {
+				exitCode = process.exitValue();
+				done = true;
+			} catch (IllegalThreadStateException e) {
+				// Trying to read exit code from process that is still running.
+				try {
+                    Thread.sleep(WAIT_SLEEP_INTERVAL);
+                } catch (InterruptedException eIntr) {
+                    process.destroy();
+                    throw new PowerHellExecutionException("Error waiting for command to finish: " + eIntr.getMessage(), eIntr, (Integer)null);
+                }
+			}
+			
 		}
-				
-		String out = getStringFromBuffer(readerStdOut);
-		String err = getStringFromBuffer(readerStdErr);
+						
+		String out = bufferStdOut.toString();
+		String err = bufferStdErr.toString();
 		logData("O<", out);
 		logData("E<", err);
     		
@@ -103,12 +156,20 @@ public class PowerHellLocalExecImpl extends AbstractPowerHellImpl {
 		return out;
 	}
 
+	private void traceReadProgress(String label, char[] buffer, int readCount) {
+		if (!traceReadProgress) {
+			return;
+		}
+		if (readCount < 0) {
+			LOG.trace("READ {} closed", label);
+		} else {
+			StringBuffer sbuf = new StringBuffer();
+			sbuf.append(buffer, 0, readCount);
+			LOG.trace("READ {} {} bytes: {}", label, readCount, sbuf.toString());
+		}
+	}
+
 	protected List<String> encodeCommand(String command, Map<String, Object> arguments) {
 		return encodeCommandExecToList(command, arguments);
 	}
-
-	private String getStringFromBuffer(BufferedReader bufferReader) {
-		return bufferReader.lines().collect(Collectors.joining("\n"));
-	}
-
 }
