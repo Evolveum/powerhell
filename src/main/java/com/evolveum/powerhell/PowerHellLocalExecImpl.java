@@ -73,6 +73,7 @@ public class PowerHellLocalExecImpl extends AbstractPowerHellImpl {
 		Process process;
 		try {
 			process = processBuilder.start();
+			LOG.trace("Executed process {}", encodedCommandLine.get(0));
 		} catch (IOException e) {
 			LOG.error("Error executing command: {}", e.getMessage());
 			PowerHellExecutionException pe = new PowerHellExecutionException("Error executing command: " + e.getMessage(), e, (Integer)null);
@@ -126,10 +127,13 @@ public class PowerHellLocalExecImpl extends AbstractPowerHellImpl {
 			try {
 				exitCode = process.exitValue();
 				done = true;
+				LOG.trace("Process {} ended with exit code {}", encodedCommandLine.get(0), exitCode);
 			} catch (IllegalThreadStateException e) {
 				// Trying to read exit code from process that is still running.
 				try {
+					LOG.trace("Read loop sleeping ...");
                     Thread.sleep(WAIT_SLEEP_INTERVAL);
+                    LOG.trace("Read loop sleep done");
                 } catch (InterruptedException eIntr) {
                     process.destroy();
                     throw new PowerHellExecutionException("Error waiting for command to finish: " + eIntr.getMessage(), eIntr, (Integer)null);
