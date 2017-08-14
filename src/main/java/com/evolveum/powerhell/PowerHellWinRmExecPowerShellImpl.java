@@ -15,26 +15,27 @@
  */
 package com.evolveum.powerhell;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
+ * <p>
+ * PowerHell implementation that executes the commands by using plain WinRM, wrapping them to powershell.exe.
+ * </p> 
+ * 
  * @author semancik
- *
  */
-public class PowerHellSecurityException extends PowerHellException {
+public class PowerHellWinRmExecPowerShellImpl extends PowerHellWinRmExecImpl {
 	
-	public PowerHellSecurityException() {
-		super();
+	private static final Logger LOG = LoggerFactory.getLogger(PowerHellWinRmExecPowerShellImpl.class);
+	
+	@Override
+	protected String getImplementationName() {
+		return "WinRM PowerShell Execution";
 	}
-
-	public PowerHellSecurityException(String message, Throwable cause) {
-		super(message, cause);
-	}
-
-	public PowerHellSecurityException(String message) {
-		super(message);
-	}
-
-	public PowerHellSecurityException(Throwable cause) {
-		super(cause);
+	
+	protected String encodeCommand(String outCommandLine) {
+		return encodePowerShell(outCommandLine);
 	}
 	
 }

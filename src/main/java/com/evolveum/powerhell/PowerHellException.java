@@ -19,21 +19,21 @@ package com.evolveum.powerhell;
  * @author semancik
  *
  */
-public class PowerHellSecurityException extends PowerHellException {
+public abstract class PowerHellException extends Exception {
 	
-	public PowerHellSecurityException() {
+	public PowerHellException() {
 		super();
 	}
 
-	public PowerHellSecurityException(String message, Throwable cause) {
+	public PowerHellException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
-	public PowerHellSecurityException(String message) {
+	public PowerHellException(String message) {
 		super(message);
 	}
 
-	public PowerHellSecurityException(Throwable cause) {
+	public PowerHellException(Throwable cause) {
 		super(cause);
 	}
 	

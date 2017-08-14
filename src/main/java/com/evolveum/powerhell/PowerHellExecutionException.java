@@ -19,7 +19,7 @@ package com.evolveum.powerhell;
  * @author semancik
  *
  */
-public class PowerHellExecutionException extends Exception {
+public class PowerHellExecutionException extends PowerHellException {
 
 	private Integer exitCode;
 	private String stdout;

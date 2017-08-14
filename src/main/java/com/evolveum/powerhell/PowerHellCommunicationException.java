@@ -19,7 +19,7 @@ package com.evolveum.powerhell;
  * @author semancik
  *
  */
-public class PowerHellCommunicationException extends Exception {
+public class PowerHellCommunicationException extends PowerHellException {
 	
 	public PowerHellCommunicationException() {
 		super();
