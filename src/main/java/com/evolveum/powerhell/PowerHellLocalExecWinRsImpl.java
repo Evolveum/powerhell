@@ -95,7 +95,7 @@ public class PowerHellLocalExecWinRsImpl extends PowerHellLocalExecImpl {
 		if (allowDelegate) {
 			commandLine.add(WINRS_AD_PARAM);
 		}
-		String encodedCommand = encodeCommandExecToString(command, arguments);
+		String encodedCommand = encodeRemoteCommand(command, arguments);
 		commandLine.add(encodedCommand);
 		return commandLine;
 	}
