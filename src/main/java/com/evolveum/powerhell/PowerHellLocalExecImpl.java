@@ -79,6 +79,15 @@ public class PowerHellLocalExecImpl extends AbstractPowerHellImpl {
 			PowerHellExecutionException pe = new PowerHellExecutionException("Error executing command: " + e.getMessage(), e, (Integer)null);
 			throw pe;
 		}
+		try {
+			// Some processes try to read all input before providing any output.
+			// Especially PowerShell behaves like this. Therefore close the stdin
+			// stream right away. We do not plan to send any input anyway.
+			process.getOutputStream().close();
+		} catch (IOException e) {
+			LOG.trace("Error closing stdin: {}", e.getMessage(), e);
+		}
+		
 		InputStreamReader readerStdOut = new InputStreamReader(process.getInputStream());
 		InputStreamReader readerStdErr = new InputStreamReader(process.getErrorStream());
 		
@@ -131,9 +140,7 @@ public class PowerHellLocalExecImpl extends AbstractPowerHellImpl {
 			} catch (IllegalThreadStateException e) {
 				// Trying to read exit code from process that is still running.
 				try {
-					LOG.trace("Read loop sleeping ...");
                     Thread.sleep(WAIT_SLEEP_INTERVAL);
-                    LOG.trace("Read loop sleep done");
                 } catch (InterruptedException eIntr) {
                     process.destroy();
                     throw new PowerHellExecutionException("Error waiting for command to finish: " + eIntr.getMessage(), eIntr, (Integer)null);
