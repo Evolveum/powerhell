@@ -43,6 +43,9 @@ import io.cloudsoft.winrm4j.client.WinRmClient;
 public abstract class AbstractPowerHellImpl implements PowerHell {
 	
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractPowerHellImpl.class);
+
+	private static final String POWERSHELL_COMMAND = "powershell";
+	private static final String POWERSHELL_ENCODED_COMMAND_PARAM = "-EncodedCommand";
 	
 	private ArgumentStyle argumentStyle;
 		
@@ -72,16 +75,34 @@ public abstract class AbstractPowerHellImpl implements PowerHell {
         return DatatypeConverter.printBase64Binary(bytes);
 	}
 	
-	protected String encodePowerShell(String command, Map<String,Object> arguments) {
-		String psScript;
+	protected String encodePowerShellToString(String command, Map<String,Object> arguments) {
+		String psScript = createPowerShellScripWithArguments(command, arguments);
+		return POWERSHELL_COMMAND + " " + POWERSHELL_ENCODED_COMMAND_PARAM + " " + encodeUtf16Base64(psScript);
+	}
+	
+	protected List<String> encodePowerShellToList(String command, Map<String,Object> arguments) {
+		List<String> commandLine = new ArrayList<>();
+		commandLine.add(POWERSHELL_COMMAND);
+		String psScript = createPowerShellScripWithArguments(command, arguments);
+		commandLine.add(POWERSHELL_ENCODED_COMMAND_PARAM);
+		commandLine.add(encodeUtf16Base64(psScript));
+		return commandLine;
+	}
+	
+	/**
+	 * Creates:
+	 * The-Ugly-PowerShell-Command -Arg1 val1
+	 * ... or ...
+	 * $Arg1 = val1; The-Ugly-PowerShell-Command
+	 */
+	protected String createPowerShellScripWithArguments(String command, Map<String,Object> arguments) {
 		if (arguments == null) {
-			psScript = command;
+			return command;
 		} else if (getArgumentStyle() == ArgumentStyle.VARIABLES) {
-			psScript = encodePowerShellVariablesAndCommandToString(command, arguments);
+			return encodePowerShellVariablesAndCommandToString(command, arguments);
 		} else {
-			psScript = encodeCommandExecToString(command, arguments);
+			return encodeCommandExecToString(command, arguments);
 		}
-		return "powershell -EncodedCommand "+encodeUtf16Base64(psScript);
 	}
 	
 	protected String encodePowerShellVariablesAndCommandToString(String command, Map<String, Object> arguments) {

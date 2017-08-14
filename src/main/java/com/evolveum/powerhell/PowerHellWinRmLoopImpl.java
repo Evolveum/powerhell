@@ -105,7 +105,7 @@ public class PowerHellWinRmLoopImpl extends AbstractPowerHellWinRmImpl {
 		
 		try {
 			
-			command = getClient().commandAsync(encodePowerShell(psScript, null));
+			command = getClient().commandAsync(encodePowerShellToString(psScript, null));
 			
 		} catch (Fault e) {
 			processFault("Executing command failed", e);

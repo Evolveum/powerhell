@@ -61,7 +61,7 @@ public class PowerHellLocalExecImpl extends AbstractPowerHellImpl {
 		
 		long tsCommStart = System.currentTimeMillis();
 		
-		List<String> encodedCommandLine = encodeCommandExecToList(command, arguments);
+		List<String> encodedCommandLine = encodeCommand(command, arguments);
 		logData("X>", encodedCommandLine.stream().collect(Collectors.joining(" ")));
 		
 		ProcessBuilder processBuilder = new ProcessBuilder(encodedCommandLine);
@@ -101,6 +101,10 @@ public class PowerHellLocalExecImpl extends AbstractPowerHellImpl {
 		logExecution(command, tsCommStart);
 		
 		return out;
+	}
+
+	protected List<String> encodeCommand(String command, Map<String, Object> arguments) {
+		return encodeCommandExecToList(command, arguments);
 	}
 
 	private String getStringFromBuffer(BufferedReader bufferReader) {

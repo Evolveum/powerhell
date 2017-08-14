@@ -15,30 +15,37 @@
  */
 package com.evolveum.powerhell;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * <p>
- * PowerHell implementation that executes the commands by using plain WinRM, wrapping them to powershell.exe.
+ * PowerHell implementation that executes the commands by using plain WinRM, wrapping them in powershell.
  * </p> 
  * 
  * @author semancik
  */
-public class PowerHellWinRmExecPowerShellImpl extends PowerHellWinRmExecImpl {
+public class PowerHellLocalExecPowerShellImpl extends PowerHellLocalExecImpl {
 	
-	private static final Logger LOG = LoggerFactory.getLogger(PowerHellWinRmExecPowerShellImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(PowerHellLocalExecPowerShellImpl.class);
 	
 	@Override
 	protected String getImplementationName() {
-		return "WinRM PowerShell Execution";
+		return "Local PowerShell Execution";
 	}
 	
+	// We need to wrap execution in powershell command-line.
 	@Override
-	protected String encodeCommand(String command, Map<String,Object> arguments) {
-		return encodePowerShellToString(command, arguments);
+	protected List<String> encodeCommand(String command, Map<String, Object> arguments) {
+		return encodePowerShellToList(command, arguments);
 	}
-	
 }
