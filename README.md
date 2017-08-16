@@ -1,2 +1,2 @@
 # PowerHell
-Java library for remote PowerShell execution
+Java library for execution of Windows cmd and PowerShell in several different ways
