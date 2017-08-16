@@ -122,6 +122,7 @@ public abstract class AbstractPowerHellWinRmImpl extends AbstractPowerHellImpl {
 		builder.credentials(domainName, userName, password);
 		builder.disableCertificateChecks(disableCertificateChecks);
 		builder.hostnameVerifier(hostnameVerifier);
+		builder.retriesForConnectionFailures(1);
 		
 		LOG.debug("Connecting WinRM for PowerHell {} Endpoint: {}", getImplementationName(), endpointUrl);
 		client = builder.build();
@@ -135,8 +136,6 @@ public abstract class AbstractPowerHellWinRmImpl extends AbstractPowerHellImpl {
 		client.disconnect();
 		client = null;
 	}
-
-	protected abstract String getImplementationName();
 
 	protected void processFault(String message, Fault e) throws PowerHellSecurityException, PowerHellCommunicationException {
 		// Fault does not have useful information on its own. Try to mine out something useful.

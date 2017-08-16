@@ -33,4 +33,6 @@ public interface PowerHell {
 	 * @return exit code
 	 */
 	int disconnect();
+	
+	String getImplementationName();
 }

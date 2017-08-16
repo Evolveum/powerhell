@@ -39,7 +39,7 @@ public class PowerHellLocalExecPowerShellImpl extends PowerHellLocalExecImpl {
 	private static final Logger LOG = LoggerFactory.getLogger(PowerHellLocalExecPowerShellImpl.class);
 	
 	@Override
-	protected String getImplementationName() {
+	public String getImplementationName() {
 		return "Local PowerShell Execution";
 	}
 	

@@ -76,7 +76,7 @@ public class PowerHellLocalExecWinRsImpl extends PowerHellLocalExecImpl {
 	}
 
 	@Override
-	protected String getImplementationName() {
+	public String getImplementationName() {
 		return "Local winrs Execution";
 	}
 	
@@ -89,9 +89,15 @@ public class PowerHellLocalExecWinRsImpl extends PowerHellLocalExecImpl {
 	protected List<String> encodeWinRsToList(String command, Map<String,Object> arguments) {
 		List<String> commandLine = new ArrayList<>();
 		commandLine.add(WINRS_COMMAND);
-		commandLine.add(WINRS_R_PARAM_PREFIX + endpointUrl);
-		commandLine.add(WINRS_U_PARAM_PREFIX + userName);
-		commandLine.add(WINRS_P_PARAM_PREFIX + password);
+		if (endpointUrl != null) {
+			commandLine.add(WINRS_R_PARAM_PREFIX + endpointUrl);
+		}
+		if (userName != null) {
+			commandLine.add(WINRS_U_PARAM_PREFIX + userName);
+		}
+		if (password != null) {
+			commandLine.add(WINRS_P_PARAM_PREFIX + password);
+		}
 		if (allowDelegate) {
 			commandLine.add(WINRS_AD_PARAM);
 		}

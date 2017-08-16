@@ -32,7 +32,7 @@ public class PowerHellLocalExecWinRsPowerShellImpl extends PowerHellLocalExecWin
 	private static final Logger LOG = LoggerFactory.getLogger(PowerHellLocalExecWinRsPowerShellImpl.class);
 
 	@Override
-	protected String getImplementationName() {
+	public String getImplementationName() {
 		return "Local winrs PowerShell Execution";
 	}
 	

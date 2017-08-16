@@ -86,7 +86,7 @@ public class PowerHellWinRmLoopImpl extends AbstractPowerHellWinRmImpl {
 	}
 	
 	@Override
-	protected String getImplementationName() {
+	public String getImplementationName() {
 		return "WinRM Loop";
 	}
 

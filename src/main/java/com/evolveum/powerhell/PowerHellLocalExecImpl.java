@@ -41,7 +41,7 @@ public class PowerHellLocalExecImpl extends AbstractPowerHellImpl {
 	private boolean traceReadProgress = true;
 	
 	@Override
-	protected String getImplementationName() {
+	public String getImplementationName() {
 		return "Local Execution";
 	}
 	

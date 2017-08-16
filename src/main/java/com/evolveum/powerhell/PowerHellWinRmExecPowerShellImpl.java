@@ -32,7 +32,7 @@ public class PowerHellWinRmExecPowerShellImpl extends PowerHellWinRmExecImpl {
 	private static final Logger LOG = LoggerFactory.getLogger(PowerHellWinRmExecPowerShellImpl.class);
 	
 	@Override
-	protected String getImplementationName() {
+	public String getImplementationName() {
 		return "WinRM PowerShell Execution";
 	}
 	

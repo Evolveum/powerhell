@@ -57,8 +57,6 @@ public abstract class AbstractPowerHellImpl implements PowerHell {
 		this.argumentStyle = argumentStyle;
 	}
 
-	protected abstract String getImplementationName();
-
 	protected void processFault(String message, Fault e) throws PowerHellSecurityException, PowerHellCommunicationException {
 		// Fault does not have useful information on its own. Try to mine out something useful.
 		Throwable cause = e.getCause();
@@ -83,6 +81,9 @@ public abstract class AbstractPowerHellImpl implements PowerHell {
 	protected List<String> encodePowerShellToList(String command, Map<String,Object> arguments) {
 		List<String> commandLine = new ArrayList<>();
 		commandLine.add(POWERSHELL_COMMAND);
+		if (arguments == null) {
+			return commandLine;
+		}
 		String psScript = createPowerShellScripWithArguments(command, arguments);
 		commandLine.add(POWERSHELL_ENCODED_COMMAND_PARAM);
 		commandLine.add(encodeUtf16Base64(psScript));
@@ -106,12 +107,15 @@ public abstract class AbstractPowerHellImpl implements PowerHell {
 	}
 	
 	protected String encodePowerShellVariablesAndCommandToString(String command, Map<String, Object> arguments) {
+		if (arguments == null) {
+			return command;
+		}
 		StringBuilder commandLineBuilder = new StringBuilder();
 		String paramPrefix = getParamPrefix();
 		for (Entry<String, Object> argEntry: arguments.entrySet()) {
 			commandLineBuilder.append(paramPrefix).append(argEntry.getKey());
 			commandLineBuilder.append(" = ");
-			commandLineBuilder.append(argEntry.getValue().toString());
+			commandLineBuilder.append(quoteSingle(argEntry.getValue().toString()));
 			commandLineBuilder.append("; ");
 		}
 		commandLineBuilder.append(command);
@@ -121,6 +125,9 @@ public abstract class AbstractPowerHellImpl implements PowerHell {
 	protected List<String> encodeCommandExecToList(String command, Map<String,Object> arguments) {
 		List<String> commandLine = new ArrayList<>();
 		commandLine.add(command);
+		if (arguments == null) {
+			return commandLine;
+		}
 		String paramPrefix = getParamPrefix();
 		for (Entry<String, Object> argEntry: arguments.entrySet()) {
 			commandLine.add(paramPrefix + argEntry.getKey());
@@ -132,6 +139,9 @@ public abstract class AbstractPowerHellImpl implements PowerHell {
 	}
 	
 	protected String encodeCommandExecToString(String command, Map<String,Object> arguments) {
+		if (arguments == null) {
+			return command;
+		}
 		StringBuilder commandLineBuilder = new StringBuilder();
 		commandLineBuilder.append(command);
 		String paramPrefix = getParamPrefix();
@@ -146,6 +156,13 @@ public abstract class AbstractPowerHellImpl implements PowerHell {
 		return commandLineBuilder.toString();
 	}
 
+	protected String quoteSingle(Object value) {
+		if (value == null) {
+			return "";
+		}
+		return "'" + value.toString().replaceAll("'", "''") + "'";
+	}
+	
 	protected String getParamPrefix() {
 		if (getArgumentStyle() == null) {
 			return ArgumentStyle.PARAMETERS_DASH.getPrefix();
