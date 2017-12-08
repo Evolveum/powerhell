@@ -142,7 +142,10 @@ public class PowerHellWinRmLoopImpl extends AbstractPowerHellWinRmImpl {
 
 	@Override
 	public String runCommand(String psScript, Map<String, Object> arguments) throws PowerHellExecutionException, PowerHellSecurityException, PowerHellCommunicationException {
-		
+		return runCommand(psScript, arguments, 0);
+	}
+	
+	private String runCommand(String psScript, Map<String, Object> arguments, int runCounter) throws PowerHellExecutionException, PowerHellSecurityException, PowerHellCommunicationException {		
 		long tsCommStart = System.currentTimeMillis();
 		
 		if (!isLoopRunning) {
@@ -157,7 +160,19 @@ public class PowerHellWinRmLoopImpl extends AbstractPowerHellWinRmImpl {
 		String tx = outCommandLine + "\r\n" + prompt + "\r\n";
 		logData("I>", tx);
 		
+		try {
 		command.send(tx);
+		}
+		catch (Exception e){
+			e.printStackTrace();
+			if (runCounter > 3) throw e;
+			isLoopRunning = false;
+			//can  disconnectClient() be called without asking for != null ??
+			if (getClient() != null) disconnectClient();
+			connectClient();
+			
+			return runCommand(psScript,arguments, runCounter++);
+		}
 		
 		while (true) {
 			Integer exitCode = command.receive();
