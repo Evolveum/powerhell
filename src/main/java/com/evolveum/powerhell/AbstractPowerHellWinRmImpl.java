@@ -133,8 +133,10 @@ public abstract class AbstractPowerHellWinRmImpl extends AbstractPowerHellImpl {
 	}
 	
 	protected void disconnectClient() {
-		client.disconnect();
-		client = null;
+		if (client != null) {
+			client.disconnect();
+			client = null;
+		}
 	}
 
 	protected void processFault(String message, Fault e) throws PowerHellSecurityException, PowerHellCommunicationException {

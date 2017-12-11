@@ -18,6 +18,8 @@ package com.evolveum.powerhell;
 import java.io.StringWriter;
 import java.util.Map;
 
+import javax.xml.ws.soap.SOAPFaultException;
+
 import org.apache.cxf.interceptor.Fault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -141,37 +143,72 @@ public class PowerHellWinRmLoopImpl extends AbstractPowerHellWinRmImpl {
 	}
 
 	@Override
-	public String runCommand(String psScript, Map<String, Object> arguments) throws PowerHellExecutionException, PowerHellSecurityException, PowerHellCommunicationException {
-		return runCommand(psScript, arguments, 0);
-	}
-	
-	private String runCommand(String psScript, Map<String, Object> arguments, int runCounter) throws PowerHellExecutionException, PowerHellSecurityException, PowerHellCommunicationException {		
+	public String runCommand(String psScript, Map<String, Object> arguments) throws PowerHellExecutionException, PowerHellSecurityException, PowerHellCommunicationException {		
 		long tsCommStart = System.currentTimeMillis();
 		
-		if (!isLoopRunning) {
-			startMainLoop();
-		}
+		int attempt = 1;
 		
-		StringWriter writerStdOut = new StringWriter();
-		StringWriter writerStdErr = new StringWriter();
+		StringWriter writerStdOut = null;
+		StringWriter writerStdErr = null;
 		String promptMessage = null;
+		String outCommandLine = null;
 		
-		String outCommandLine = encodePowerShellVariablesAndCommandToString(psScript, arguments);
-		String tx = outCommandLine + "\r\n" + prompt + "\r\n";
-		logData("I>", tx);
-		
-		try {
-		command.send(tx);
+		int maxLoopStartAttempts;
+		if (isLoopRunning) {
+			// First "start" may reuse existing connection.
+			// We need another attempt that starts fresh with new connection.
+			maxLoopStartAttempts = 2;
+		} else {
+			// Even the first attempt is create new connection.
+			// No re-connect necessary.
+			maxLoopStartAttempts = 1;
 		}
-		catch (Exception e){
-			e.printStackTrace();
-			if (runCounter > 3) throw e;
-			isLoopRunning = false;
-			//can  disconnectClient() be called without asking for != null ??
-			if (getClient() != null) disconnectClient();
-			connectClient();
+		
+		while (true) {
 			
-			return runCommand(psScript,arguments, runCounter++);
+			if (!isLoopRunning) {
+				startMainLoop();
+			}
+			
+			writerStdOut = new StringWriter();
+			writerStdErr = new StringWriter();
+			promptMessage = null;
+			
+			outCommandLine = encodePowerShellVariablesAndCommandToString(psScript, arguments);
+			String tx = outCommandLine + "\r\n" + prompt + "\r\n";
+			logData("I>", tx);
+			
+			try {
+				
+				command.send(tx);
+				
+				// success
+				break;
+				
+			} catch (SOAPFaultException e) {
+				// We do not get any error that is more specific than SOAPFault.
+				// Therefore it is difficult to decide whether to re-start loop and re-try the command
+				// (e.g. case of "invalid selectors" after WinRM service restart.
+				// Or whether there is no point and just throw the error up.
+				// So let's be conservative, try to re-start the loop couple of times
+				// and then throw the error up.
+				LOG.error("SOAP fault (attempt {}/{}): {}", attempt, maxLoopStartAttempts, e.getMessage(), e);
+				
+				if (attempt >= maxLoopStartAttempts) {
+					throw e;
+				}
+				attempt++;
+				isLoopRunning = false;
+				disconnectClient();
+				connectClient();
+				continue;
+				
+			} catch (Throwable e) {
+				// Avoid any looping for other errors
+				throw e;
+			}
+			
+			// not reached
 		}
 		
 		while (true) {
