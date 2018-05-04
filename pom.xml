@@ -83,7 +83,7 @@
 		<dependency>
 			<groupId>io.cloudsoft.windows</groupId>
 			<artifactId>winrm4j</artifactId>
-			<version>0.4.0.e4</version>
+			<version>0.4.0.e5</version>
 		</dependency>
 	</dependencies>
 </project>
