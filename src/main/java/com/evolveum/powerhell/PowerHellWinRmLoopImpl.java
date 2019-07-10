@@ -174,7 +174,7 @@ public class PowerHellWinRmLoopImpl extends AbstractPowerHellWinRmImpl {
 			writerStdErr = new StringWriter();
 			promptMessage = null;
 			
-			outCommandLine = encodePowerShellVariablesAndCommandToString(psScript, arguments);
+			outCommandLine = createPowerShellScripWithArguments(psScript, arguments);
 			String tx = outCommandLine + "\r\n" + prompt + "\r\n";
 			logData("I>", tx);
 			
