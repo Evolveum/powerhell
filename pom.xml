@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- ~ Copyright (c) 2017-2018 Evolveum 
+<!-- ~ Copyright (c) 2017-2022 Evolveum
      ~ 
      ~ Licensed under the Apache License, Version 2.0 (the "License"); 
      ~ you may not use this file except in compliance with the License. 
@@ -85,5 +85,34 @@
 			<artifactId>winrm4j</artifactId>
 			<version>0.4.0.e5</version>
 		</dependency>
+
+		<!-- Required for Java 11 -->
+		<dependency>
+			<groupId>javax.xml.ws</groupId>
+			<artifactId>jaxws-api</artifactId>
+			<version>2.3.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.xml.ws</groupId>
+			<artifactId>jaxws-ri</artifactId>
+			<version>2.3.1</version>
+			<type>pom</type>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-core</artifactId>
+			<version>2.3.0.1</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+			<version>2.3.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-impl</artifactId>
+			<version>2.3.1</version>
+		</dependency>
+
 	</dependencies>
 </project>
